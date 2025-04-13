@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: email-service
+  name: email-service
+  namespace: banka-3
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: email-service
+  template:
+    metadata:
+      labels:
+        app: email-service
+    spec:
+      containers:
+      - image: harbor.k8s.elab.rs/banka-3/email-service:latest
+        imagePullPolicy: Always
+        name: email-service
+        env:
+        - name: SPRING_DATASOURCE_URL
+          valueFrom:
+            secretKeyRef:
+              name: banka-3-pguser-main-db
+              key: jdbc-uri
+        - name: SPRING_DATASOURCE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: banka-3-pguser-main-db
+              key: user
+        - name: SPRING_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: banka-3-pguser-main-db
+              key: password
+        - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+          value: update
+        - name: SPRING_RABBITMQ_HOST
+          value: banka-3-rabbitmq
+        - name: SPRING_RABBITMQ_PORT
+          value: "5672"
+        - name: SPRING_RABBITMQ_USERNAME
+          value: user
+        - name: SPRING_RABBITMQ_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: banka-3-rabbitmq
+              key: rabbitmq-password
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: email-service
+  name: email-service
+  namespace: banka-3
+spec:
+  ports:
+  - port: 8081
+    protocol: TCP
+    targetPort: 8081
+  selector:
+    app: email-service
+  type: ClusterIP
