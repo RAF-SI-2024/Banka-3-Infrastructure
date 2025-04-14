@@ -1,0 +1,55 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: banka-3-ingress-api
+  namespace: banka-3
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: banka-3.si.raf.edu.rs
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            path: "/user-service(/|$)(.*)"
+            backend:
+              service:
+                name: user-service
+                port:
+                  number: 8080
+          - pathType: ImplementationSpecific
+            path: "/bank-service(/|$)(.*)"
+            backend:
+              service:
+                name: bank-service
+                port:
+                  number: 8082
+          - pathType: ImplementationSpecific
+            path: "/stock-service(/|$)(.*)"
+            backend:
+              service:
+                name: stock-service
+                port:
+                  number: 8083
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: banka-3-ingress-frontend
+  namespace: banka-3
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: banka-3.si.raf.edu.rs
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            path: "/"
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 80
