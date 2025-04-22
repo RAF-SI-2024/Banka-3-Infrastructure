@@ -24,10 +24,10 @@ postsubmits:
               helm package backend
               helm package frontend
 
-              file=$(find . -maxdepth 1 -type f -name "${TEAM_NAME}-backend-*.tgz" -printf "%f\n")
+              file=$(find . -maxdepth 1 -type f -name "backend-*.tgz" -printf "%f\n")
               helm push "$file" oci://harbor.k8s.elab.rs/banka-3/helm
 
-              file=$(find . -maxdepth 1 -type f -name "${TEAM_NAME}-frontend-*.tgz" -printf "%f\n")
+              file=$(find . -maxdepth 1 -type f -name "frontend-*.tgz" -printf "%f\n")
               helm push "$file" oci://harbor.k8s.elab.rs/banka-3/helm
 
           securityContext:
