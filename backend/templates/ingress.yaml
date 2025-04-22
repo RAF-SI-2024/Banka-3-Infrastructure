@@ -1,0 +1,34 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}-ingress-api
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: {{ .Values.appDomain }}
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            path: "/user-service(/|$)(.*)"
+            backend:
+              service:
+                name: {{ .Release.Name }}-user-service
+                port:
+                  number: 8080
+          - pathType: ImplementationSpecific
+            path: "/bank-service(/|$)(.*)"
+            backend:
+              service:
+                name: {{ .Release.Name }}-bank-service
+                port:
+                  number: 8082
+          - pathType: ImplementationSpecific
+            path: "/stock-service(/|$)(.*)"
+            backend:
+              service:
+                name: {{ .Release.Name }}-stock-service
+                port:
+                  number: 8083

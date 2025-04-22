@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: {{ .Release.Name }}-user-service-kotlin
+  name: {{ .Release.Name }}-user-service-kotlin
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-user-service-kotlin
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-user-service-kotlin
+    spec:
+      containers:
+      - image: harbor.k8s.elab.rs/banka-3/user-service-kotlin:{{ .Values.imageTag }}
+        imagePullPolicy: Always
+        name: user-service-kotlin
+        env:
+        - name: SPRING_DATASOURCE_URL
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Release.Name }}-db-pguser-main-db
+              key: jdbc-uri
+        - name: SPRING_DATASOURCE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Release.Name }}-db-pguser-main-db
+              key: user
+        - name: SPRING_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Release.Name }}-db-pguser-main-db
+              key: password
+        - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+          value: update
+        - name: SPRING_RABBITMQ_HOST
+          value: banka-3-rabbitmq
+        - name: SPRING_RABBITMQ_PORT
+          value: "5672"
+        - name: SPRING_RABBITMQ_USERNAME
+          value: user
+        - name: SPRING_RABBITMQ_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: banka-3-rabbitmq
+              key: rabbitmq-password
+        - name: SPRING_CLOUD_OPENFEIGN_CLIENT_CONFIG_BANK-SERVICE_URL
+          value: http://{{ .Release.Name }}-bank-service:8082
+        - name: SPRING_CLOUD_OPENFEIGN_CLIENT_CONFIG_STOCK-SERVICE_URL
+          value: http://{{ .Release.Name }}-stock-service:8083
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: {{ .Release.Name }}-user-service-kotlin
+  name: {{ .Release.Name }}-user-service-kotlin
+  namespace: {{ .Release.Namespace }}
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: {{ .Release.Name }}-user-service-kotlin
+  type: ClusterIP

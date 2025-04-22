@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: {{ .Release.Name }}-stock-service
+  name: {{ .Release.Name }}-stock-service
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-stock-service
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-stock-service
+    spec:
+      containers:
+      - image: harbor.k8s.elab.rs/banka-3/stock-service:{{ .Values.imageTag }}
+        imagePullPolicy: Always
+        name: stock-service
+        env:
+        - name: SPRING_DATASOURCE_URL
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Release.Name }}-db-pguser-stock-db
+              key: jdbc-uri
+        - name: SPRING_DATASOURCE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Release.Name }}-db-pguser-stock-db
+              key: user
+        - name: SPRING_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Release.Name }}-db-pguser-stock-db
+              key: password
+        - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+          value: update
+        - name: SPRING_RABBITMQ_HOST
+          value: banka-3-rabbitmq
+        - name: SPRING_RABBITMQ_PORT
+          value: "5672"
+        - name: SPRING_RABBITMQ_USERNAME
+          value: user
+        - name: SPRING_RABBITMQ_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: banka-3-rabbitmq
+              key: rabbitmq-password
+        - name: SPRING_REDIS_HOST
+          value: banka-3-redis-master
+        - name: SPRING_REDIS_PORT
+          value: "6379"
+        - name: SPRING_REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: banka-3-redis
+              key: redis-password
+        - name: SPRING_CLOUD_OPENFEIGN_CLIENT_CONFIG_BANK-SERVICE_URL
+          value: http://{{ .Release.Name }}-bank-service:8082
+        - name: SPRING_CLOUD_OPENFEIGN_CLIENT_CONFIG_USER-SERVICE_URL
+          value: http://{{ .Release.Name }}-user-service:8080
+        - name: ALPHAVANTAGE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: alphavantage-key
+              key: apikey
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: {{ .Release.Name }}-stock-service
+  name: {{ .Release.Name }}-stock-service
+  namespace: {{ .Release.Namespace }}
+spec:
+  ports:
+  - port: 8083
+    protocol: TCP
+    targetPort: 8083
+  selector:
+    app: {{ .Release.Name }}-stock-service
+  type: ClusterIP
