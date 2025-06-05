@@ -48,6 +48,8 @@ spec:
             secretKeyRef:
               name: banka-3-rabbitmq
               key: rabbitmq-password
+        - name: BASE_APP_URL
+          value: https://banka-3.si.raf.edu.rs/
 
 
 ---
