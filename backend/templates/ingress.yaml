@@ -12,7 +12,7 @@ spec:
       http:
         paths:
           - pathType: ImplementationSpecific
-            path: "/user-service(/|$)(.*)"
+            path: "/user-service-kotlin(/|$)(.*)"
             backend:
               service:
                 name: {{ .Release.Name }}-user-service
