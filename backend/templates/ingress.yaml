@@ -12,10 +12,10 @@ spec:
       http:
         paths:
           - pathType: ImplementationSpecific
-            path: "/user-service-kotlin(/|$)(.*)"
+            path: "/user-service(/|$)(.*)"
             backend:
               service:
-                name: {{ .Release.Name }}-user-service
+                name: {{ .Release.Name }}-user-service-kotlin
                 port:
                   number: 8080
           - pathType: ImplementationSpecific
